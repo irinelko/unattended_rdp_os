@@ -24,6 +24,7 @@ echo "Creating Virtual Machine '$VM_NAME' with the Zorin OS ISO..."
 
 # Create virtual disk for the VM
 qemu-img create -f qcow2 "$VM_DISK_PATH" "$VM_STORAGE_SIZE"
+sudo apt install virt-manager libvirt-bin qemu-kvm
 
 # Create the VM with appropriate resources
 virt-install \
