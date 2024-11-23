@@ -10,16 +10,33 @@ fi
 GRML_DIR="/boot/grml"
 ISO_PATH="$GRML_DIR/ubuntu-lts.iso"
 PRESEED_PATH="/boot/grml/preseed.cfg"
+GRUB_CUSTOM_FILE="/etc/grub.d/40_custom"
+ENV_FILE="./.env"
 
-# Step 1: Create necessary directories
+# Step 1: Load environment variables
+if [[ -f "$ENV_FILE" ]]; then
+    echo "Loading environment variables from $ENV_FILE..."
+    source "$ENV_FILE"
+else
+    echo "Error: .env file not found. Please create a .env file with the required variables."
+    exit 1
+fi
+
+# Validate required variables
+if [[ -z "$PRESEED_USERNAME" || -z "$PRESEED_PASSWORD" ]]; then
+    echo "Error: PRESEED_USERNAME or PRESEED_PASSWORD is not set in the .env file."
+    exit 1
+fi
+
+# Step 2: Create necessary directories
 echo "Creating $GRML_DIR directory if it doesn't exist..."
 mkdir -p $GRML_DIR
 
-# Step 2: Download the latest Ubuntu LTS ISO
+# Step 3: Download the latest Ubuntu LTS ISO
 echo "Downloading the latest Ubuntu LTS ISO..."
 wget -O "$ISO_PATH" https://releases.ubuntu.com/$(wget -qO- https://releases.ubuntu.com/ | grep -oP '(?<=href=")[^"]+/' | grep -E '^2[0-9]+\.[0-9]+$' | sort -V | tail -1)/ubuntu-$(wget -qO- https://releases.ubuntu.com/ | grep -oP '(?<=href=")[^"]+/' | grep -E '^2[0-9]+\.[0-9]+$' | sort -V | tail -1)-desktop-amd64.iso
 
-# Step 3: Create a preseed file for unattended installation
+# Step 4: Create a preseed file for unattended installation
 echo "Creating preseed file at $PRESEED_PATH..."
 cat > "$PRESEED_PATH" <<EOF
 # Localization
@@ -31,7 +48,7 @@ d-i keyboard-configuration/layoutcode string us
 
 # Network Configuration
 d-i netcfg/choose_interface select auto
-d-i netcfg/get_hostname string ubuntu
+d-i netcfg/get_hostname string $PRESEED_USERNAME
 d-i netcfg/get_domain string localdomain
 
 # Mirror Settings
@@ -57,10 +74,10 @@ d-i partman/confirm_nooverwrite boolean true
 
 # User Setup
 d-i passwd/root-login boolean false
-d-i passwd/user-fullname string Ubuntu User
-d-i passwd/username string ubuntu
-d-i passwd/user-password password password
-d-i passwd/user-password-again password password
+d-i passwd/user-fullname string $PRESEED_USERNAME
+d-i passwd/username string $PRESEED_USERNAME
+d-i passwd/user-password password $PRESEED_PASSWORD
+d-i passwd/user-password-again password $PRESEED_PASSWORD
 
 # Bootloader
 d-i grub-installer/only_debian boolean true
@@ -75,9 +92,9 @@ d-i pkgsel/upgrade select safe-upgrade
 d-i finish-install/reboot_in_progress note
 EOF
 
-# Step 4: Update GRUB with ISO and preseed configuration
+# Step 5: Update GRUB with ISO and preseed configuration
 echo "Updating GRUB configuration to include the Ubuntu LTS ISO..."
-cat >> /etc/grub.d/40_custom <<EOF
+cat > "$GRUB_CUSTOM_FILE" <<EOF
 
 menuentry "Install Ubuntu LTS Unattended" {
     set isofile="$ISO_PATH"
@@ -87,8 +104,26 @@ menuentry "Install Ubuntu LTS Unattended" {
 }
 EOF
 
+# Step 6: Configure GRUB to boot automatically into "Install Ubuntu LTS Unattended"
+echo "Configuring GRUB to auto-select 'Install Ubuntu LTS Unattended'..."
+DEFAULT_ENTRY="Install Ubuntu LTS Unattended"
+
+# Find the GRUB menu entry index
+ENTRY_INDEX=$(grep -A100 submenu /boot/grub/grub.cfg | grep -n "$DEFAULT_ENTRY" | awk -F':' '{print $1-1}')
+
+if [[ -z "$ENTRY_INDEX" ]]; then
+    echo "Error: Could not determine the GRUB entry for '$DEFAULT_ENTRY'. Ensure the GRUB configuration is correct."
+    exit 1
+fi
+
+# Set the GRUB default to this entry
+sed -i 's/^GRUB_DEFAULT=.*/GRUB_DEFAULT='"$ENTRY_INDEX"'/' /etc/default/grub
+
+# Set GRUB timeout for auto-selection
+sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=5/' /etc/default/grub
+
 # Update GRUB
-echo "Updating GRUB..."
 update-grub
 
-echo "Setup complete! Reboot and select 'Install Ubuntu LTS Unattended' from the GRUB menu."
+echo "Setup complete! The system will automatically boot into 'Install Ubuntu LTS Unattended' on the next restart."
+sudo reboot
