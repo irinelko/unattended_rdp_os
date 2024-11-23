@@ -42,7 +42,7 @@ echo "Restarting libvirt service..."
 systemctl restart libvirtd
 
 # Step 4: Variables for VM creation
-ISO_URL="https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.8.0-amd64-netinst.iso"
+ISO_URL="https://cdimage.debian.org/cdimage/weekly-builds/amd64/iso-cd/debian-12.0.0-amd64-netinst.iso"
 ISO_PATH="/var/lib/libvirt/images/debian-12.0.0-amd64-netinst.iso"
 VM_NAME="Debian-VM"
 VM_DISK_PATH="/var/lib/libvirt/images/debian-12.0.0.qcow2"
@@ -50,11 +50,23 @@ VM_MEMORY="4096"  # Memory in MB
 VM_CPU="2"        # Number of CPUs
 VM_STORAGE_SIZE="20G"  # Storage size in GB
 
-# Step 5: Download the Debian ISO
-echo "Downloading the Debian ISO..."
-sudo wget -O "$ISO_PATH" "$ISO_URL"
+# Step 5: Check if the VM name already exists and change it if necessary
+VM_EXISTS=$(virsh list --all --name | grep -w "$VM_NAME")
+if [ ! -z "$VM_EXISTS" ]; then
+    echo "VM with name '$VM_NAME' already exists. Creating a unique name."
+    COUNTER=1
+    while [ ! -z "$(virsh list --all --name | grep -w "${VM_NAME}-${COUNTER}")" ]; do
+        ((COUNTER++))
+    done
+    VM_NAME="${VM_NAME}-${COUNTER}"
+    echo "New VM name: $VM_NAME"
+fi
 
-# Step 6: Create Virtual Machine using libvirt
+# Step 6: Download the Debian ISO
+echo "Downloading the Debian ISO..."
+wget -O "$ISO_PATH" "$ISO_URL"
+
+# Step 7: Create Virtual Machine using libvirt
 echo "Creating Virtual Machine '$VM_NAME' with the Debian ISO..."
 
 # Create virtual disk for the VM
@@ -76,7 +88,7 @@ virt-install \
   --boot cdrom \
   --wait -1
 
-# Step 7: Set up cloud-init
+# Step 8: Set up cloud-init for unattended installation
 echo "Setting up cloud-init..."
 
 # Cloud-init script
@@ -92,7 +104,7 @@ runcmd:
   - echo "Unattended installation started..."
 EOF
 
-# Step 8: Attach cloud-init config to the VM
+# Step 9: Attach cloud-init config to the VM
 virt-install \
   --name "$VM_NAME" \
   --ram "$VM_MEMORY" \
@@ -109,11 +121,12 @@ virt-install \
   --boot cdrom \
   --wait -1
 
-# Step 9: Monitor installation progress
+# Step 10: Monitor installation progress
 echo "The virtual machine is installing Debian. Monitor the console for progress."
 virsh console "$VM_NAME"
 
 # Final message
 echo "Debian installation in the virtual machine should complete shortly. If you wish to access the VM, use the virt-manager interface."
+
 sudo apt install -y virt-manager
 virt-manager
