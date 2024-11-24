@@ -48,7 +48,7 @@ VM_NAME="Debian-VM"
 VM_DISK_PATH="/var/lib/libvirt/images/debian-12.0.0.qcow2"
 VM_MEMORY="4096"  # Memory in MB
 VM_CPU="2"        # Number of CPUs
-VM_STORAGE_SIZE="20G"  # Storage size in GB
+VM_STORAGE_SIZE=20G  # Storage size in GB
 
 # Step 5: Check if the VM name already exists and change it if necessary
 VM_EXISTS=$(virsh list --all --name | grep -w "$VM_NAME")
