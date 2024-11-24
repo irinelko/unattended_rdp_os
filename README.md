@@ -1,7 +1,7 @@
 # How to run
 Run this command in your terminal to install a new OS.
 ```
-wget -qO- https://raw.githubusercontent.com/irinelko/unattended_rdp_os/main/vm_test.sh | sudo bash
+wget -qO- https://raw.githubusercontent.com/irinelko/unattended_rdp_os/refs/heads/main/vm_test.sh | sudo bash
 ```
 
 # Summary of what the script does:
