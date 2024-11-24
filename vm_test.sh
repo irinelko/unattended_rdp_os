@@ -127,4 +127,5 @@ virsh console "$VM_NAME"
 echo "Debian installation in the virtual machine should complete shortly. If you wish to access the VM, use the virt-manager interface."
 
 sudo apt install -y virt-manager
+newgrp libvirt
 virt-manager
