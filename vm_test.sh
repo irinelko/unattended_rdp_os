@@ -111,7 +111,7 @@ virt-install \
   --disk path="$VM_DISK_PATH",size="$VM_STORAGE_SIZE" \
   --cdrom "$ISO_PATH" \
   --network network=default \
-  --os-variant debian12.0 \
+  --os-variant debian12 \
   --graphics spice \
   --console pty,target_type=serial \
   --cloud-init "$VM_NAME-cloud-init.cfg" \
