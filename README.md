@@ -1,10 +1,15 @@
-# How to run
-Run this command in your terminal to test the script on VM.
+# Run
 ```
-sudo wget --no-cache -qO- https://raw.githubusercontent.com/irinelko/unattended_rdp_os/refs/heads/main/vm_test.sh | sudo bash
+sudo wget --no-cache -qO- https://raw.githubusercontent.com/irinelko/unattended_rdp_os/refs/heads/main/unattended-ubuntu-install.sh | sudo bash
 ```
 
-# Summary of what the script does:
+# Test
+Run this command in your terminal to test the script on VM.
+```
+sudo wget --no-cache -qO- https://raw.githubusercontent.com/irinelko/unattended_rdp_os/refs/heads/main/test/vm_install.sh | sudo bash
+```
+
+# Summary of what the script does
 
 1. Downloads the Latest Ubuntu LTS ISO:
 The script identifies and downloads the most recent Long-Term Support (LTS) version of Ubuntu directly from the official Ubuntu releases website.
