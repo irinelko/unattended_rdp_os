@@ -1,5 +1,5 @@
 # How to run
-Run this command in your terminal to install a new OS.
+Run this command in your terminal to test the script on VM.
 ```
 sudo wget -qO- https://raw.githubusercontent.com/irinelko/unattended_rdp_os/refs/heads/main/vm_test.sh | sudo bash
 ```
