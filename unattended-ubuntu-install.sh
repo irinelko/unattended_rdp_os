@@ -34,7 +34,7 @@ mkdir -p $GRML_DIR
 
 # Step 3: Download the latest Ubuntu LTS ISO
 echo "Downloading the latest Ubuntu LTS ISO..."
-wget -O "$ISO_PATH" https://releases.ubuntu.com/$(wget -qO- https://releases.ubuntu.com/ | grep -oP '(?<=href=")[^"]+/' | grep -E '^2[0-9]+\.[0-9]+$' | sort -V | tail -1)/ubuntu-$(wget -qO- https://releases.ubuntu.com/ | grep -oP '(?<=href=")[^"]+/' | grep -E '^2[0-9]+\.[0-9]+$' | sort -V | tail -1)-desktop-amd64.iso
+wget -O "$ISO_PATH" https://releases.ubuntu.com/noble/ubuntu-24.04.1-desktop-amd64.iso
 
 # Step 4: Create a preseed file for unattended installation
 echo "Creating preseed file at $PRESEED_PATH..."
