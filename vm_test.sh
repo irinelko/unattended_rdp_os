@@ -42,7 +42,7 @@ echo "Restarting libvirt service..."
 systemctl restart libvirtd
 
 # Step 4: Variables for VM creation
-ISO_URL="https://cdimage.debian.org/cdimage/weekly-builds/amd64/iso-cd/debian-12.0.0-amd64-netinst.iso"
+ISO_URL="https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.8.0-amd64-netinst.iso"
 ISO_PATH="/var/lib/libvirt/images/debian-12.0.0-amd64-netinst.iso"
 VM_NAME="Debian-VM"
 VM_DISK_PATH="/var/lib/libvirt/images/debian-12.0.0.qcow2"
