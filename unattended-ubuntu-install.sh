@@ -128,6 +128,8 @@ menuentry "$ISO_GRUB_ENTRY_NAME" {
 }
 EOF
 
+update-grub || grub-mkconfig -o "$GRUB_CONFIG_DIR/grub.cfg"
+
 echo "Custom GRUB entry added to $GRUB_CUSTOM_FILE."
 
 # Step 7: Configure GRUB to boot automatically into the menu entry
