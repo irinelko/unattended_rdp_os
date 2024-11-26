@@ -10,7 +10,6 @@ fi
 GRML_DIR="/boot/grml"
 ISO_PATH="$GRML_DIR/ubuntu-lts.iso"
 PRESEED_PATH="/boot/grml/preseed.cfg"
-GRUB_CUSTOM_FILE="/etc/grub.d/40_custom"
 ENV_FILE="./.env"
 
 # Step 1: Load environment variables
@@ -92,17 +91,40 @@ d-i pkgsel/upgrade select safe-upgrade
 d-i finish-install/reboot_in_progress note
 EOF
 
-# Step 5: Update GRUB with ISO and preseed configuration
-echo "Updating GRUB configuration to include the Ubuntu LTS ISO..."
-cat > "$GRUB_CUSTOM_FILE" <<EOF
+echo "Identifying boot partition and GRUB configuration directory..."
+BOOT_PARTITION=$(df /boot | tail -1 | awk '{print $1}')
+GRUB_CONFIG_DIR="/boot/grub"
+ISO_GRUB_ENTRY_NAME="Install Ubuntu LTS Unattended"
 
-menuentry "Install Ubuntu LTS Unattended" {
-    set isofile="$ISO_PATH"
-    loopback loop (hd0,1)$isofile
+# Validate required paths
+if [[ ! -f "$ISO_PATH" ]]; then
+    echo "Error: ISO file not found at $ISO_PATH. Exiting."
+    exit 1
+fi
+if [[ ! -f "$PRESEED_PATH" ]]; then
+    echo "Error: Preseed file not found at $PRESEED_PATH. Exiting."
+    exit 1
+fi
+
+echo "Updating GRUB configuration to include the Ubuntu LTS ISO..."
+
+GRUB_CUSTOM_FILE="$GRUB_CONFIG_DIR/custom.cfg"
+
+cat > "$GRUB_CUSTOM_FILE" <<EOF
+menuentry "$ISO_GRUB_ENTRY_NAME" {
+    set isofile=$ISO_PATH
+    loopback loop $isofile
     linux (loop)/casper/vmlinuz boot=casper auto=true priority=critical file=$PRESEED_PATH
     initrd (loop)/casper/initrd
 }
 EOF
+
+echo "Custom GRUB entry added to $GRUB_CUSTOM_FILE."
+
+echo "Updating GRUB to apply changes..."
+update-grub || grub-mkconfig -o "$GRUB_CONFIG_DIR/grub.cfg"
+
+echo "GRUB configuration updated successfully. Reboot and select '$ISO_GRUB_ENTRY_NAME' to start the unattended installation."
 
 # Step 6: Configure GRUB to boot automatically into "Install Ubuntu LTS Unattended"
 echo "Configuring GRUB to auto-select 'Install Ubuntu LTS Unattended'..."
