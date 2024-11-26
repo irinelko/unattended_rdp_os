@@ -34,7 +34,7 @@ mkdir -p $GRML_DIR
 
 # Step 3: Download the latest Ubuntu LTS ISO
 echo "Downloading the latest Ubuntu LTS ISO..."
-wget -O "$ISO_PATH" https://releases.ubuntu.com/noble/ubuntu-24.04.1-desktop-amd64.iso
+wget -nc -O "$ISO_PATH" https://releases.ubuntu.com/noble/ubuntu-24.04.1-desktop-amd64.iso
 
 # Step 4: Create a preseed file for unattended installation
 echo "Creating preseed file at $PRESEED_PATH..."
@@ -109,7 +109,7 @@ echo "Configuring GRUB to auto-select 'Install Ubuntu LTS Unattended'..."
 DEFAULT_ENTRY="Install Ubuntu LTS Unattended"
 
 # Find the GRUB menu entry index
-ENTRY_INDEX=$(grep -A100 submenu /boot/grub/grub.cfg | grep -n "$DEFAULT_ENTRY" | awk -F':' '{print $1-1}')
+ENTRY_INDEX=$(sudo grep -A100 submenu /boot/grub/grub.cfg | grep -n "$DEFAULT_ENTRY" | awk -F':' '{print $1-1}')
 
 if [[ -z "$ENTRY_INDEX" ]]; then
     echo "Error: Could not determine the GRUB entry for '$DEFAULT_ENTRY'. Ensure the GRUB configuration is correct."
