@@ -57,13 +57,13 @@ echo "Updating GRUB configuration to include the Ubuntu LTS ISO..."
 cat >> "$GRUB_CONFIG_DIR/grub.cfg" <<EOF
 
 menuentry "$ISO_GRUB_ENTRY_NAME" {
-    set isofile=(hd0,1)$ISO_PATH
+    set isofile=$ISO_PATH
     insmod loopback
     insmod iso9660
     insmod part_msdos
     insmod ext2
     loopback loop (hd0,1)$isofile
-    linux (loop)/casper/vmlinuz boot=casper auto=true priority=critical file=$PRESEED_PATH
+    linux (loop)/casper/vmlinuz boot=casper auto=true priority=critical file=$PRESEED_PATH iso-scan/filename=$isofile
     initrd (loop)/casper/initrd
 }
 EOF
