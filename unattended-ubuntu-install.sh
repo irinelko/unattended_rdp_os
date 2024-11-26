@@ -37,10 +37,14 @@ mkdir -p $GRML_DIR
 
 # Step 3: Download the latest Ubuntu LTS ISO
 echo "Downloading the latest Ubuntu LTS ISO..."
-wget -nc -O "$ISO_PATH" "$ISO_URL"
-if [[ $? -ne 0 ]]; then
-    echo "Error: Failed to download the Ubuntu ISO."
-    exit 1
+if [[ -f "$ISO_PATH" ]]; then
+    echo "ISO file already exists at $ISO_PATH. Skipping download."
+else
+    wget -O "$ISO_PATH" "$ISO_URL"
+    if [[ $? -ne 0 ]]; then
+        echo "Error: Failed to download the Ubuntu ISO."
+        exit 1
+    fi
 fi
 
 # Step 4: Create a preseed file for unattended installation
