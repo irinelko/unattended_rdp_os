@@ -9,8 +9,12 @@ fi
 # Variables
 GRML_DIR="/boot/grml"
 ISO_PATH="$GRML_DIR/ubuntu-lts.iso"
-PRESEED_PATH="/boot/grml/preseed.cfg"
+PRESEED_PATH="$GRML_DIR/preseed.cfg"
 ENV_FILE="./.env"
+ISO_URL="https://releases.ubuntu.com/noble/ubuntu-24.04.1-desktop-amd64.iso"
+GRUB_CONFIG_DIR="/boot/grub"
+GRUB_CUSTOM_FILE="$GRUB_CONFIG_DIR/custom.cfg"
+ISO_GRUB_ENTRY_NAME="Install Ubuntu LTS Unattended"
 
 # Step 1: Load environment variables
 if [[ -f "$ENV_FILE" ]]; then
@@ -33,7 +37,11 @@ mkdir -p $GRML_DIR
 
 # Step 3: Download the latest Ubuntu LTS ISO
 echo "Downloading the latest Ubuntu LTS ISO..."
-wget -nc -O "$ISO_PATH" https://releases.ubuntu.com/noble/ubuntu-24.04.1-desktop-amd64.iso
+wget -nc -O "$ISO_PATH" "$ISO_URL"
+if [[ $? -ne 0 ]]; then
+    echo "Error: Failed to download the Ubuntu ISO."
+    exit 1
+fi
 
 # Step 4: Create a preseed file for unattended installation
 echo "Creating preseed file at $PRESEED_PATH..."
@@ -91,12 +99,11 @@ d-i pkgsel/upgrade select safe-upgrade
 d-i finish-install/reboot_in_progress note
 EOF
 
+# Step 5: Identify boot partition dynamically
 echo "Identifying boot partition and GRUB configuration directory..."
 BOOT_PARTITION=$(df /boot | tail -1 | awk '{print $1}')
-GRUB_CONFIG_DIR="/boot/grub"
-ISO_GRUB_ENTRY_NAME="Install Ubuntu LTS Unattended"
 
-# Validate required paths
+# Validate required files
 if [[ ! -f "$ISO_PATH" ]]; then
     echo "Error: ISO file not found at $ISO_PATH. Exiting."
     exit 1
@@ -106,10 +113,8 @@ if [[ ! -f "$PRESEED_PATH" ]]; then
     exit 1
 fi
 
+# Step 6: Update GRUB to include custom menu entry
 echo "Updating GRUB configuration to include the Ubuntu LTS ISO..."
-
-GRUB_CUSTOM_FILE="$GRUB_CONFIG_DIR/custom.cfg"
-
 cat > "$GRUB_CUSTOM_FILE" <<EOF
 menuentry "$ISO_GRUB_ENTRY_NAME" {
     set isofile=$ISO_PATH
@@ -121,31 +126,25 @@ EOF
 
 echo "Custom GRUB entry added to $GRUB_CUSTOM_FILE."
 
-echo "Updating GRUB to apply changes..."
-update-grub || grub-mkconfig -o "$GRUB_CONFIG_DIR/grub.cfg"
-
-echo "GRUB configuration updated successfully. Reboot and select '$ISO_GRUB_ENTRY_NAME' to start the unattended installation."
-
-# Step 6: Configure GRUB to boot automatically into "Install Ubuntu LTS Unattended"
-echo "Configuring GRUB to auto-select 'Install Ubuntu LTS Unattended'..."
-DEFAULT_ENTRY="Install Ubuntu LTS Unattended"
+# Step 7: Configure GRUB to boot automatically into the menu entry
+echo "Configuring GRUB to auto-select '$ISO_GRUB_ENTRY_NAME'..."
+DEFAULT_ENTRY="$ISO_GRUB_ENTRY_NAME"
 
 # Find the GRUB menu entry index
-ENTRY_INDEX=$(sudo grep -A100 submenu /boot/grub/grub.cfg | grep -n "$DEFAULT_ENTRY" | awk -F':' '{print $1-1}')
+ENTRY_INDEX=$(grep -A100 submenu /boot/grub/grub.cfg | grep -n "$DEFAULT_ENTRY" | awk -F':' '{print $1-1}')
 
 if [[ -z "$ENTRY_INDEX" ]]; then
     echo "Error: Could not determine the GRUB entry for '$DEFAULT_ENTRY'. Ensure the GRUB configuration is correct."
     exit 1
 fi
 
-# Set the GRUB default to this entry
-sed -i 's/^GRUB_DEFAULT=.*/GRUB_DEFAULT='"$ENTRY_INDEX"'/' /etc/default/grub
-
-# Set GRUB timeout for auto-selection
+# Set GRUB default to the identified entry
+sed -i "s/^GRUB_DEFAULT=.*/GRUB_DEFAULT='$DEFAULT_ENTRY'/" /etc/default/grub
 sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=5/' /etc/default/grub
 
-# Update GRUB
-update-grub
+# Update GRUB configuration
+update-grub || grub-mkconfig -o "$GRUB_CONFIG_DIR/grub.cfg"
 
-echo "Setup complete! The system will automatically boot into 'Install Ubuntu LTS Unattended' on the next restart."
-sudo reboot
+# Final step: Prompt for reboot
+echo "Setup complete! The system will automatically boot into '$ISO_GRUB_ENTRY_NAME' on the next restart."
+reboot
