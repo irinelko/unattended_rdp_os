@@ -1,0 +1,39 @@
+#cloud-config
+autoinstall:
+  version: 1
+  identity:
+    hostname: xubuntu-vm
+    username: irinelko
+    password: "newpassword"
+  keyboard:
+    layout: us
+  locale: en_US.UTF-8
+  timezone: UTC
+  ssh:
+    install-server: true
+    allow-pw: true
+  network:
+    ethernets:
+      ens33:
+        dhcp4: true
+    version: 2
+  storage:
+    layout:
+      name: lvm
+  packages:
+    - xubuntu-desktop
+    - xfce4-terminal
+    - xrdp
+    - net-tools
+    - curl
+    - wget
+    - git
+    - nodejs
+    - npm
+  user-data:
+    disable_root: false
+  late-commands:
+    - curtin in-target -- apt-get update
+    - curtin in-target -- apt-get upgrade -y
+    - curtin in-target -- systemctl enable xrdp
+    - curtin in-target -- systemctl start xrdp
