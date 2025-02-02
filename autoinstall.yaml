@@ -4,7 +4,8 @@ autoinstall:
   identity:
     hostname: xubuntu-vm
     username: irinelko
-    password: "newpassword"
+    password: "$6$7/x1Cdd0KoTnQ9mF$dkL2WfU96eWXYe7Q6YaHTIicY6ESuM80K1Of0/Zg/tNNvkf4fSX/G9tTMG0ACM1qRZuhkgtSyzBoANHW3Fiji0
+"
   keyboard:
     layout: us
   locale: en_US.UTF-8
