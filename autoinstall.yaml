@@ -33,9 +33,15 @@ autoinstall:
   late-commands:
     - curtin in-target -- apt-get update
     - curtin in-target -- apt-get upgrade -y
+    # XRDP with H.264 support
     - curtin in-target -- apt purge xrdp xorgxrdp
     - curtin in-target -- apt-add-repository ppa:saxl/xrdp-egfx
     - curtin in-target -- apt install xrdp-egfx xorgxrdp-egfx
     - curtin in-target -- apt install pulseaudio-module-xrdp
+    # install node.js
     - curtin in-target -- wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
     - curtin in-target -- nvm use 23
+    # Disable screen lock
+    - chroot /target su -c "gsettings set org.gnome.desktop.screensaver lock-enabled false" ubuntu
+    - chroot /target su -c "gsettings set org.gnome.desktop.screensaver idle-activation-enabled false" ubuntu
+    - chroot /target su -c "gsettings set org.gnome.desktop.session idle-delay 0" ubuntu
