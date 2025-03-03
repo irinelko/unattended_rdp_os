@@ -45,3 +45,6 @@ autoinstall:
     - chroot /target su -c "gsettings set org.gnome.desktop.screensaver lock-enabled false" ubuntu
     - chroot /target su -c "gsettings set org.gnome.desktop.screensaver idle-activation-enabled false" ubuntu
     - chroot /target su -c "gsettings set org.gnome.desktop.session idle-delay 0" ubuntu
+    - chroot /target su -c "gsettings set org.gnome.desktop.screensaver ubuntu-lock-on-suspend false" ubuntu
+    - chroot /target su -c "gsettings set org.gnome.desktop.lockdown disable-lock-screen true" ubuntu
+
