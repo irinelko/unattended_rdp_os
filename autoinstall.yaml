@@ -28,12 +28,14 @@ autoinstall:
     - curl
     - wget
     - git
-    - nodejs
-    - npm
   user-data:
     disable_root: false
   late-commands:
     - curtin in-target -- apt-get update
     - curtin in-target -- apt-get upgrade -y
-    - curtin in-target -- systemctl enable xrdp
-    - curtin in-target -- systemctl start xrdp
+    - curtin in-target -- apt purge xrdp xorgxrdp
+    - curtin in-target -- apt-add-repository ppa:saxl/xrdp-egfx
+    - curtin in-target -- apt install xrdp-egfx xorgxrdp-egfx
+    - curtin in-target -- apt install pulseaudio-module-xrdp
+    - curtin in-target -- wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+    - curtin in-target -- nvm use 23
