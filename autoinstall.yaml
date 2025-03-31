@@ -28,6 +28,7 @@ autoinstall:
     - curl
     - wget
     - git
+    - docker.io  # Add Docker package here
   user-data:
     disable_root: false
   late-commands:
@@ -38,7 +39,12 @@ autoinstall:
     - curtin in-target -- apt-add-repository ppa:saxl/xrdp-egfx
     - curtin in-target -- apt install xrdp-egfx xorgxrdp-egfx
     - curtin in-target -- apt install pulseaudio-module-xrdp
-    # install node.js
+    # Install Docker Compose
+    - curtin in-target -- curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    - curtin in-target -- chmod +x /usr/local/bin/docker-compose
+    # Add user to Docker group
+    - curtin in-target -- usermod -aG docker irinelko
+    # Install Node.js
     - curtin in-target -- wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
     - curtin in-target -- nvm use 23
     # Disable screen lock
@@ -47,4 +53,3 @@ autoinstall:
     - chroot /target su -c "gsettings set org.gnome.desktop.session idle-delay 0" ubuntu
     - chroot /target su -c "gsettings set org.gnome.desktop.screensaver ubuntu-lock-on-suspend false" ubuntu
     - chroot /target su -c "gsettings set org.gnome.desktop.lockdown disable-lock-screen true" ubuntu
-
